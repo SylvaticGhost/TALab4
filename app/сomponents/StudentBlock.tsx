@@ -1,7 +1,6 @@
 import Image from 'next/image'
 
 
-
 type StudentProps = {
     name: string,
     grade: number,
