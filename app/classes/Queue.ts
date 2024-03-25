@@ -5,7 +5,7 @@
  */
 export class Queue<T> {
     private items: T[];
-
+    
     /**
      * Constructs a new, empty Queue.
      */
@@ -26,6 +26,10 @@ export class Queue<T> {
      * @returns {T | undefined} The removed element, or undefined if the queue was empty.
      */
     dequeue(): T | undefined {
+        if(this.isEmpty()) {
+            throw new Error('Queue is empty');
+        }
+        
         return this.items.shift();
     }
 
@@ -33,7 +37,11 @@ export class Queue<T> {
      * Returns the first element in the queue without removing it.
      * @returns {T | undefined} The first element in the queue, or undefined if the queue is empty.
      */
-    front(): T | undefined {
+    front(): T  {
+        if(this.isEmpty()) {
+            throw new Error('Queue is empty');
+        }
+        
         return this.items[0];
     }
 
