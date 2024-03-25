@@ -8,9 +8,9 @@ import {Queue} from "@/app/classes/Queue";
 
 
 import {useState} from "react";
-import StudentBlock from './components/StudentBlock'
-import StudentBase from "@/app/components/StudentBase";
+
 import {number} from "prop-types";
+import StudentBase from "./сomponents/StudentBase";
 
 interface Yearbook {
     person: string;
@@ -190,6 +190,7 @@ export default function Home() {
                         <input type="text" id="website-admin"
                                className="rounded-none rounded-e-lg bg-gray-50 border border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm p-2.5  "
                                placeholder="Harley Queen" value={name} onInput={(e) => {
+                            // @ts-ignore
                             e.target.value = e.target.value.replace(/[^a-zA-Zа-яёА-ЯЁіІєЄїЇґҐ\s]/g, '') //TODO: fix
                         }} onChange={(e) => {
                             setName(e.target.value)
