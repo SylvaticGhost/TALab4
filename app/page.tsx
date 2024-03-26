@@ -8,9 +8,9 @@ import {Queue} from "@/app/classes/Queue";
 
 
 import {useState} from "react";
-
+import StudentBlock from './components/StudentBlock'
+import StudentBase from "@/app/components/StudentBase";
 import {number} from "prop-types";
-import StudentBase from "./сomponents/StudentBase";
 
 interface Yearbook {
     person: string;
@@ -79,25 +79,29 @@ export default function Home() {
         '2019': setGrades2019
     };
     function addToBase(name: string, mark: number) {
+        if (name.trim() != '' && !isNaN(mark)) {
+            // @ts-ignore
+            const setGrades = gradeSetters[year];
 
-        // @ts-ignore
-        const setGrades = gradeSetters[year];
+            if (setGrades) {
+                setGrades((oldGrades: { toArray: () => any[]; }) => {
+                    if (oldGrades.toArray().some(item => item.person === name)) {
+                        alert(`Студент з ім'ям ${name} вже існує в черзі.`);
+                        return oldGrades;
+                    }
 
-        if (setGrades) {
-            setGrades((oldGrades: { toArray: () => any[]; }) => {
-                if (oldGrades.toArray().some(item => item.person === name)) {
-                    alert(`Студент з ім'ям ${name} вже існує в черзі.`);
-                    return oldGrades;
-                }
-
-                let newGrades = new Queue<Yearbook>();
-                oldGrades.toArray().forEach(item => newGrades.enqueue(item));
-                newGrades.enqueue({ person: name, grade: mark });
-                return newGrades;
-            });
+                    let newGrades = new Queue<Yearbook>();
+                    oldGrades.toArray().forEach(item => newGrades.enqueue(item));
+                    newGrades.enqueue({ person: name, grade: mark });
+                    return newGrades;
+                });
+            } else {
+                console.error(`Невідомий рік: ${year}`);
+            }
         } else {
-            console.error(`Невідомий рік: ${year}`);
+            alert('Не введені дані')
         }
+
     }
 
     function calculateAverage() {
@@ -134,6 +138,7 @@ export default function Home() {
 
         if (setGrades) {
             setGrades(new Queue<Yearbook>());
+            setStats([])
         } else {
             console.error(`Невідомий рік: ${year}`);
         }
@@ -190,7 +195,6 @@ export default function Home() {
                         <input type="text" id="website-admin"
                                className="rounded-none rounded-e-lg bg-gray-50 border border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm p-2.5  "
                                placeholder="Harley Queen" value={name} onInput={(e) => {
-                            // @ts-ignore
                             e.target.value = e.target.value.replace(/[^a-zA-Zа-яёА-ЯЁіІєЄїЇґҐ\s]/g, '') //TODO: fix
                         }} onChange={(e) => {
                             setName(e.target.value)
