@@ -8,8 +8,9 @@ import {Queue} from "@/app/classes/Queue";
 
 
 import {useState} from "react";
-import StudentBlock from './components/StudentBlock' //TODO: fix
+
 import {number} from "prop-types";
+import StudentBase from "./сomponents/StudentBase";
 
 interface Yearbook {
     person: string;
@@ -59,51 +60,87 @@ export default function Home() {
     }
     let [mark, setMark] = useState<number>(0);
     let [name, setName] = useState<string>('')
+    let [year, setYear] = useState<string>('2024')
+    let [stats, setStats] = useState([])
 
     const [grades2024, setGrades2024] = useState(new Queue<Yearbook>());
     const [grades2023, setGrades2023] = useState(new Queue<Yearbook>());
     const [grades2022, setGrades2022] = useState(new Queue<Yearbook>());
+    const [grades2021, setGrades2021] = useState(new Queue<Yearbook>());
+    const [grades2020, setGrades2020] = useState(new Queue<Yearbook>());
+    const [grades2019, setGrades2019] = useState(new Queue<Yearbook>());
 
+    const gradeSetters = {
+        '2024': setGrades2024,
+        '2023': setGrades2023,
+        '2022': setGrades2022,
+        '2021': setGrades2021,
+        '2020': setGrades2020,
+        '2019': setGrades2019
+    };
     function addToBase(name: string, mark: number) {
-        setGrades2024(oldGrades => {
-            if (oldGrades.toArray().some(item => item.person === name)) {
-                console.log(`Студент з ім'ям ${name} вже існує в черзі.`);
-                return oldGrades;
-            }
 
-            let newGrades = new Queue<Yearbook>();
-            oldGrades.toArray().forEach(item => newGrades.enqueue(item));
-            newGrades.enqueue({ person: name, grade: mark });
-            return newGrades;
-        });
-        console.log(grades2024.toArray())
+        // @ts-ignore
+        const setGrades = gradeSetters[year];
+
+        if (setGrades) {
+            setGrades((oldGrades: { toArray: () => any[]; }) => {
+                if (oldGrades.toArray().some(item => item.person === name)) {
+                    alert(`Студент з ім'ям ${name} вже існує в черзі.`);
+                    return oldGrades;
+                }
+
+                let newGrades = new Queue<Yearbook>();
+                oldGrades.toArray().forEach(item => newGrades.enqueue(item));
+                newGrades.enqueue({ person: name, grade: mark });
+                return newGrades;
+            });
+        } else {
+            console.error(`Невідомий рік: ${year}`);
+        }
     }
+
+    function calculateAverage() {
+        const gradeQueues = {
+            '2024': grades2024,
+            '2023': grades2023,
+            '2022': grades2022,
+            '2021': grades2021,
+            '2020': grades2020,
+            '2019': grades2019
+        };
+        let newStats = []
+        for (const c_year in gradeQueues) {
+            // @ts-ignore
+            const grades = gradeQueues[c_year].toArray();
+            if (grades.length > 0) {
+                const sum = grades.reduce((total: any, grade: { grade: any; }) => total + grade.grade, 0);
+                const average = sum / grades.length;
+                newStats.push(`Середній бал для ${c_year}: ${average.toFixed(2)}`)
+            } else {
+                newStats.push(`Немає даних для ${c_year}`);
+            }
+        }
+
+        // @ts-ignore
+        setStats(newStats)
+    }
+
 
 
     function clearBase() {
-        setGrades2024(new Queue<Yearbook>())
+        // @ts-ignore
+        const setGrades = gradeSetters[year];
+
+        if (setGrades) {
+            setGrades(new Queue<Yearbook>());
+        } else {
+            console.error(`Невідомий рік: ${year}`);
+        }
     }
 
-    function compareGrades(queue1: Queue<Yearbook>, queue2: Queue<Yearbook>, queue3: Queue<Yearbook>) {
-        let array1 = queue1.toArray();
-        let array2 = queue2.toArray();
-        let array3 = queue3.toArray();
+    function compareGrades(queue1: Queue<Yearbook>, queue2: Queue<Yearbook>, queue3: Queue<Yearbook>, queue4: Queue<Yearbook>, queue5: Queue<Yearbook>, queue6: Queue<Yearbook>) {
 
-        let commonPersons = array1.filter(item1 =>
-            array2.some(item2 => item2.person === item1.person) &&
-            array3.some(item3 => item3.person === item1.person)
-        );
-
-        commonPersons.forEach(person => {
-            let grade1 = array1.find(item => item.person === person.person)?.grade;
-            let grade2 = array2.find(item => item.person === person.person)?.grade;
-            let grade3 = array3.find(item => item.person === person.person)?.grade;
-
-            console.log(`Статистика зміни для ${person.person}:`);
-            console.log(`2024: ${grade1}`);
-            console.log(`2023: ${grade2}`);
-            console.log(`2022: ${grade3}`);
-        });
     }
 
     return (
@@ -112,40 +149,30 @@ export default function Home() {
                 <button className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 mr-5" onClick={()=>{clearBase()}}>
                     Clear base
                 </button>
-                <select id="countries"
+                <select id="countries" onChange={e => {
+                    setYear(e.target.value)
+                }} value={year}
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-250 p-2.5">
 
                     <option>2024</option>
                     <option>2023</option>
                     <option>2022</option>
+                    <option>2021</option>
+                    <option>2020</option>
+                    <option>2019</option>
                 </select>
             </div>
 
-
-            <div className="w-9/12 mx-auto mt-10 mb-40 text-center relative overflow-x-auto">
-                <table className="w-full text-sm text-left rtl:text-right text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                    <tr>
-                        <th scope="col" className="px-6 py-3">
-                            Student`s name
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Grade
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Action
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {/*{ diary.toArray().map(item =>*/}
-                    {/*    // eslint-disable-next-line react/jsx-key*/}
-                    {/*    <StudentBlock name={item.name} grade={item.grade}></StudentBlock>*/}
-                    {/*) }*/}
-                    </tbody>
-                </table>
-            </div>
-
+            {(() => {
+                switch (year) {
+                    case '2024':   return <StudentBase base={grades2024}></StudentBase>;
+                    case '2023': return <StudentBase base={grades2023}></StudentBase>;
+                    case '2022': return <StudentBase base={grades2022}></StudentBase>;
+                    case '2021': return <StudentBase base={grades2021}></StudentBase>;
+                    case '2020': return <StudentBase base={grades2020}></StudentBase>;
+                    case '2019': return <StudentBase base={grades2019}></StudentBase>;
+                }
+            })()}
 
             <div className="flex mx-auto w-11/12">
                 <div className="max-w-lg mx-auto">
@@ -163,6 +190,7 @@ export default function Home() {
                         <input type="text" id="website-admin"
                                className="rounded-none rounded-e-lg bg-gray-50 border border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm p-2.5  "
                                placeholder="Harley Queen" value={name} onInput={(e) => {
+                            // @ts-ignore
                             e.target.value = e.target.value.replace(/[^a-zA-Zа-яёА-ЯЁіІєЄїЇґҐ\s]/g, '') //TODO: fix
                         }} onChange={(e) => {
                             setName(e.target.value)
@@ -261,7 +289,6 @@ export default function Home() {
                 </div>
                 <div className="mx-auto mt-7">
                     <button type="button" onClick={() => {
-                        console.log(name, mark)
                         addToBase(name, mark)
                     }}
                             className="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"> Add
@@ -270,12 +297,16 @@ export default function Home() {
 
                 </div>
             </div>
-
+            <div className="flex justify-center mt-10">
+                <button type="button" onClick={calculateAverage}
+                        className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2">Calculate statistics
+                </button>
+            </div>
+            <div className="ml-52">
+                {stats.map(stat =>
+                    <p> {stat}</p>
+                )}
+            </div>
         </>
     );
 }
-
-//TODO: Add button "посщитать"
-//TODO: under the button add result field
-//TODO: Add error show 
-// func(Q<S>, string s)
